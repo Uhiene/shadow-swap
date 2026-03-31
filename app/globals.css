@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --bg-void: #0D0221;
+  --bg-surface: #1A0A3E;
+  --bg-elevated: #2D1B69;
+
+  /* Primary Purple Spectrum */
+  --purple-deep: #4A1FB8;
+  --purple-bright: #7C3AED;
+  --purple-glow: #A78BFA;
+  --purple-soft: #C4B5FD;
+
+  /* Accent Colors */
+  --pink-hot: #EC4899;
+  --pink-glow: #F472B6;
+  --magenta-crystal: #D946EF;
+  --cyan-accent: #22D3EE;
+
+  /* Text */
+  --text-primary: #F5F3FF;
+  --text-secondary: #A78BFA;
+  --text-muted: #6D5BA3;
+
+  /* Effects */
+  --glow-purple: 0 0 20px rgba(124, 58, 237, 0.5);
+  --glow-pink: 0 0 20px rgba(236, 72, 153, 0.4);
+  --glow-cyan: 0 0 15px rgba(34, 211, 238, 0.4);
+
+  /* Gradients */
+  --gradient-crystal: linear-gradient(135deg, #4A1FB8 0%, #7C3AED 30%, #D946EF 70%, #EC4899 100%);
+  --gradient-surface: linear-gradient(180deg, #1A0A3E 0%, #0D0221 100%);
+  --gradient-button: linear-gradient(135deg, #7C3AED 0%, #D946EF 100%);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--bg-void);
+  --color-foreground: var(--text-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: 'DM Sans', 'General Sans', sans-serif;
+  min-height: 100vh;
 }
+
+/* Glass morphism utility */
+.glass {
+  backdrop-filter: blur(16px);
+  background: rgba(26, 10, 62, 0.7);
+  border: 1px solid rgba(167, 139, 250, 0.15);
+}
+
+/* Animated gradient border */
+.gradient-border {
+  position: relative;
+  background: var(--bg-surface);
+  border-radius: 1rem;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-crystal);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+}
+
+/* Glow button */
+.glow-btn {
+  background: var(--gradient-button);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-btn:hover {
+  box-shadow: var(--glow-purple), var(--glow-pink);
+  transform: scale(1.02);
+}
+
+/* Hidden badge pulse */
+.hidden-badge {
+  background: linear-gradient(135deg, #D946EF, #EC4899);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(217, 70, 239, 0.6); }
+  50% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.9), 0 0 40px rgba(217, 70, 239, 0.4); }
+}
+
+/* Staggered fade-in */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+.fade-in-1 { animation-delay: 0.1s; }
+.fade-in-2 { animation-delay: 0.2s; }
+.fade-in-3 { animation-delay: 0.3s; }
+.fade-in-4 { animation-delay: 0.4s; }
+.fade-in-5 { animation-delay: 0.5s; }
+
+/* Floating crystal animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(2deg); }
+  66% { transform: translateY(-8px) rotate(-1deg); }
+}
+.crystal-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-void); }
+::-webkit-scrollbar-thumb { background: var(--purple-deep); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--purple-bright); }
