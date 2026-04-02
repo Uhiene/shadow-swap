@@ -16,6 +16,16 @@
 - Use TypeScript for all frontend code, Solidity for contracts.
 - Every file you create must be production-ready — with error handling, loading states, and edge cases covered.
 - I am a copy-paste developer. I do NOT write code. I copy your output, save files, and run commands. That's it.
+- NEVER ask for confirmation before running commands. Just run them.
+- NEVER ask "should I proceed?" or "would you like me to..." — just DO it.
+- NEVER give me multiple options to choose from. Pick the best one and build it.
+- If something needs deciding, YOU decide. Only ask me if it's about what I want the app to LOOK like or DO — never about technical implementation.
+- Run all commands yourself (npm install, npx, etc). Do NOT ask me to run commands. Execute them directly.
+- If a command fails, fix the error and re-run it yourself automatically.
+- NEVER ask for confirmation before running commands. Just run them.
+- NEVER ask "should I proceed?" or "would you like me to..." — just DO it.
+- NEVER give me multiple options to choose from. Pick the best one and build it.
+- If something needs deciding, YOU decide. Only ask me about what the app should LOOK like or DO.
 
 ---
 

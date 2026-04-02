@@ -1,14 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  distDir: '.next',
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@react-native-async-storage/async-storage': false,
-    };
-    return config;
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

@@ -6,7 +6,7 @@ dotenv.config({ path: '.env.local' });
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.24',
+    version: '0.8.28',
     settings: {
       optimizer: {
         enabled: true,
@@ -20,6 +20,7 @@ const config: HardhatUserConfig = {
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
       chainId: 421614,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: "auto",
     },
   },
 };

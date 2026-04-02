@@ -5,6 +5,7 @@ import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CrystalBackground from "@/components/CrystalBackground";
+import GuardianTour from "@/components/GuardianTour";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
+            <GuardianTour />
           </div>
         </Providers>
       </body>

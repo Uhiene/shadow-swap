@@ -2,15 +2,48 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
+import { arbitrumSepolia } from "wagmi/chains";
 import { classNames } from "@/lib/utils";
-import logo from "@/public/logo.png";
 
 const navLinks = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/create", label: "Create Offer" },
   { href: "/dashboard", label: "Dashboard" },
 ];
+
+function WrongNetworkBanner() {
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain, isPending } = useSwitchChain();
+
+  if (!isConnected || chainId === arbitrumSepolia.id) return null;
+
+  return (
+    <div
+      className="w-full flex items-center justify-center gap-3 px-4 py-2 text-sm font-medium"
+      style={{
+        background: "rgba(236,72,153,0.15)",
+        borderBottom: "1px solid rgba(236,72,153,0.35)",
+        color: "var(--pink-hot)",
+      }}
+    >
+      <span>⚠ Wrong network — you are spending real ETH. Switch to Arbitrum Sepolia testnet.</span>
+      <button
+        onClick={() => switchChain({ chainId: arbitrumSepolia.id })}
+        disabled={isPending}
+        className="px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 disabled:opacity-50"
+        style={{
+          background: "rgba(236,72,153,0.25)",
+          border: "1px solid rgba(236,72,153,0.5)",
+          color: "var(--pink-hot)",
+        }}
+      >
+        {isPending ? "Switching..." : "Switch Network"}
+      </button>
+    </div>
+  );
+}
 
 function ConnectButton() {
   const { address, isConnected } = useAccount();
@@ -69,78 +102,80 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header
-      className="sticky top-0 z-50 glass"
-      style={{ borderBottom: "1px solid rgba(167, 139, 250, 0.12)" }}
-    >
-      <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center group">
-          <img src="/logo.png" alt="ShadowSwap" className="w-16 h-16" />
+    <>
+      <header
+        className="sticky top-0 z-50 glass"
+        style={{ borderBottom: "1px solid rgba(167, 139, 250, 0.12)" }}
+      >
+        <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center group">
+            <img src="/logo.png" alt="ShadowSwap" className="w-16 h-16" />
+            <span
+              className="text-xl font-bold tracking-wide"
+              style={{
+                background: "var(--gradient-crystal)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              ShadowSwap
+            </span>
+          </Link>
 
-          <span
-            className="text-xl font-bold tracking-wide"
-            style={{
-              background: "var(--gradient-crystal)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            ShadowSwap
-          </span>
-        </Link>
+          {/* Nav links */}
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const isActive = pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={classNames(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                    isActive
+                      ? "text-(--purple-glow) bg-(--bg-elevated)"
+                      : "text-(--text-secondary) hover:text-foreground hover:bg-(--bg-elevated)",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
 
-        {/* Nav links */}
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => {
-            const isActive = pathname.startsWith(link.href);
-            return (
+          {/* Mobile nav */}
+          <div className="md:hidden flex items-center gap-1">
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={classNames(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300",
-                  isActive
-                    ? "text-(--purple-glow) bg-(--bg-elevated)"
-                    : "text-(--text-secondary)hover:text-[var(--text-primary)] hover:bg-(--bg-elevated)",
-                )}
+                className="p-2 rounded-lg text-xs hover:bg-(--bg-elevated) transition-colors"
+                style={{ color: "var(--text-muted)" }}
               >
-                {link.label}
+                {link.label === "Marketplace" && (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                )}
               </Link>
-            );
-          })}
-        </div>
+            ))}
+          </div>
 
-        {/* Mobile nav */}
-        <div className="md:hidden flex items-center gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="p-2 rounded-lg text-xs hover:bg-(--bg-elevated) transition-colors"
-              style={{ color: "var(--text-muted)" }}
-            >
-              {link.label === "Marketplace" && (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="2" y="3" width="20" height="14" rx="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                </svg>
-              )}
-            </Link>
-          ))}
-        </div>
-
-        <ConnectButton />
-      </nav>
-    </header>
+          <ConnectButton />
+        </nav>
+        <WrongNetworkBanner />
+      </header>
+    </>
   );
 }

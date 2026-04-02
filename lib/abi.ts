@@ -35,9 +35,9 @@ export const MOCK_ERC20_ABI = [
 
 export const WRAPPED_CONFIDENTIAL_TOKEN_ABI = [
   {
-    inputs: [{ name: 'amount', type: 'uint256' }],
+    inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }],
     name: 'wrap',
-    outputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -46,6 +46,21 @@ export const WRAPPED_CONFIDENTIAL_TOKEN_ABI = [
     name: 'unwrap',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    // Grant the OTC contract permission to call confidentialTransferFrom on behalf of this user
+    inputs: [{ name: 'operator', type: 'address' }, { name: 'until', type: 'uint48' }],
+    name: 'setOperator',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'holder', type: 'address' }, { name: 'spender', type: 'address' }],
+    name: 'isOperator',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const;
