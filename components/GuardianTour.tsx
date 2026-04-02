@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Shield, Plug, Fuel, Coins, Lock, ShoppingCart, Lightbulb, X, ChevronRight, Zap } from 'lucide-react';
 
 const TOUR_KEY = 'shadowswap_tour_dismissed';
 
 const STEPS = [
   {
     id: 1,
-    icon: '🔌',
+    icon: <Plug size={28} strokeWidth={1.5} />,
     title: 'Connect Your Wallet',
     desc: 'Click the "Connect Wallet" button in the top-right corner. Make sure MetaMask is installed and set to Arbitrum Sepolia (chain ID 421614). If you see a red banner saying "Wrong Network", click Switch Network.',
     action: null,
@@ -17,7 +18,7 @@ const STEPS = [
   },
   {
     id: 2,
-    icon: '⛽',
+    icon: <Fuel size={28} strokeWidth={1.5} />,
     title: 'Get Free Testnet ETH',
     desc: 'Before you can do anything on-chain, you need a tiny amount of testnet ETH for gas fees. Visit a faucet, paste your wallet address, and request ETH. It arrives in under a minute.',
     action: 'https://faucet.quicknode.com/arbitrum/sepolia',
@@ -27,25 +28,25 @@ const STEPS = [
   },
   {
     id: 3,
-    icon: '🪙',
+    icon: <Coins size={28} strokeWidth={1.5} />,
     title: 'Mint Testnet sUSD',
     desc: 'Go to your Dashboard and mint free Shadow USD (sUSD) tokens. Type any amount (e.g. 1000) and click Mint. Confirm the transaction in MetaMask. Your balance updates in a few seconds.',
     action: '/dashboard',
     actionLabel: 'Go to Dashboard →',
-    tip: 'sUSD is ShadowSwap\'s testnet token — it has no real value.',
+    tip: "sUSD is ShadowSwap's testnet token — it has no real value.",
   },
   {
     id: 4,
-    icon: '🔒',
+    icon: <Lock size={28} strokeWidth={1.5} />,
     title: 'Create a Confidential Offer',
-    desc: 'Head to Create Offer. You\'ll go through 3 steps: Approve → Wrap → Create. This converts your sUSD into encrypted csUSD and posts a sell offer where buyers can see your price but never your amount.',
+    desc: "Head to Create Offer. You'll go through 4 steps: Approve → Wrap → Approve OTC → Create. This converts your sUSD into encrypted csUSD and posts a sell offer where buyers can see your price but never your amount.",
     action: '/create',
     actionLabel: 'Create an Offer →',
-    tip: 'The "🔒 Amount Hidden" badge means your trade size is encrypted on-chain using iExec Nox.',
+    tip: 'The "Amount Hidden" badge means your trade size is encrypted on-chain using iExec Nox.',
   },
   {
     id: 5,
-    icon: '🛒',
+    icon: <ShoppingCart size={28} strokeWidth={1.5} />,
     title: 'Browse & Take Offers',
     desc: 'Visit the Marketplace to see all live offers. Each card shows the token pair, price per unit, seller reputation, and expiry — but never the amount. Click "Take Offer" to execute a trade.',
     action: '/marketplace',
@@ -57,14 +58,13 @@ const STEPS = [
 export default function GuardianTour() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
-  const [step, setStep] = useState(0); // 0 = welcome screen
+  const [step, setStep] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const dismissed = localStorage.getItem(TOUR_KEY);
     if (!dismissed) {
-      // Small delay so page renders first
       const t = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(t);
     }
@@ -92,17 +92,18 @@ export default function GuardianTour() {
 
   return (
     <>
-      {/* Floating Guardian button — always visible */}
+      {/* Floating Guardian button */}
       <button
         onClick={() => setVisible(true)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all duration-300 hover:scale-110"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
         style={{
           background: 'var(--gradient-button)',
           boxShadow: '0 0 20px rgba(124,58,237,0.6), 0 0 40px rgba(217,70,239,0.3)',
+          color: '#fff',
         }}
         title="Open Guardian Tour"
       >
-        🛡
+        <Shield size={22} />
       </button>
 
       {/* Backdrop */}
@@ -123,23 +124,24 @@ export default function GuardianTour() {
             {/* Close */}
             <button
               onClick={() => dismiss(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all duration-200 hover:bg-white/10"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:bg-white/10"
               style={{ color: 'var(--text-muted)' }}
             >
-              ✕
+              <X size={16} />
             </button>
 
             {/* Welcome screen */}
             {step === 0 && (
               <div className="text-center">
                 <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mx-auto mb-5"
+                  className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
                   style={{
                     background: 'var(--gradient-button)',
                     boxShadow: '0 0 30px rgba(124,58,237,0.5)',
+                    color: '#fff',
                   }}
                 >
-                  🛡
+                  <Shield size={36} />
                 </div>
 
                 <h2
@@ -168,11 +170,13 @@ export default function GuardianTour() {
                       onClick={() => setStep(s.id)}
                       style={{ border: '1px solid rgba(167,139,250,0.1)' }}
                     >
-                      <span className="text-lg w-7 text-center flex-shrink-0">{s.icon}</span>
+                      <span className="w-7 flex-shrink-0 flex items-center justify-center" style={{ color: 'var(--purple-glow)' }}>
+                        {s.icon}
+                      </span>
                       <div>
                         <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{s.title}</div>
                       </div>
-                      <span className="ml-auto text-xs" style={{ color: 'var(--text-muted)' }}>→</span>
+                      <ChevronRight size={14} className="ml-auto" style={{ color: 'var(--text-muted)' }} />
                     </div>
                   ))}
                 </div>
@@ -221,10 +225,11 @@ export default function GuardianTour() {
 
                 <div className="text-center mb-6">
                   <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4"
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
                     style={{
                       background: 'rgba(124,58,237,0.2)',
                       border: '1px solid rgba(124,58,237,0.3)',
+                      color: 'var(--purple-glow)',
                     }}
                   >
                     {currentStep.icon}
@@ -242,15 +247,15 @@ export default function GuardianTour() {
 
                 {/* Tip box */}
                 <div
-                  className="px-4 py-3 rounded-xl text-xs mb-6"
+                  className="px-4 py-3 rounded-xl text-xs mb-6 flex items-start gap-2"
                   style={{
-                    background: 'rgba(34,211,238,0.08)',
-                    border: '1px solid rgba(34,211,238,0.2)',
+                    background: 'rgba(190,242,100,0.08)',
+                    border: '1px solid rgba(190,242,100,0.2)',
                     color: 'var(--text-secondary)',
                   }}
                 >
-                  <span style={{ color: 'var(--cyan-accent)' }}>💡 Tip: </span>
-                  {currentStep.tip}
+                  <Lightbulb size={13} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--cyan-accent)' }} />
+                  <span><span style={{ color: 'var(--cyan-accent)' }}>Tip: </span>{currentStep.tip}</span>
                 </div>
 
                 {/* Actions */}
@@ -292,14 +297,14 @@ export default function GuardianTour() {
                   ) : (
                     <button
                       onClick={() => dismiss(true)}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02]"
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] inline-flex items-center justify-center gap-2"
                       style={{
                         background: 'var(--gradient-button)',
                         color: '#fff',
                         boxShadow: 'var(--glow-purple)',
                       }}
                     >
-                      Let's Go! 🚀
+                      Let's Go! <Zap size={14} />
                     </button>
                   )}
                 </div>

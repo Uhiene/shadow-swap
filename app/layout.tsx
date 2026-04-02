@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, DM_Sans } from "next/font/google";
+import { JetBrains_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import CrystalBackground from "@/components/CrystalBackground";
 import GuardianTour from "@/components/GuardianTour";
 
-const dmSans = DM_Sans({
+const sora = Sora({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
@@ -36,13 +36,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${sora.variable} ${jetbrainsMono.variable}`}>
       <body
         suppressHydrationWarning
         style={{
           background: "var(--bg-void)",
           color: "var(--text-primary)",
-          fontFamily: "var(--font-body), DM Sans, sans-serif",
+          fontFamily: "var(--font-body), Sora, sans-serif",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",

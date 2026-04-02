@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useReadContract } from 'wagmi';
 import { useAccount } from 'wagmi';
+import { Lock } from 'lucide-react';
 import GlowButton from '@/components/GlowButton';
 import { SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
@@ -112,7 +113,7 @@ export default function HomePage() {
         {[
           { label: 'Active Offers', value: <OfferCountStat /> },
           { label: 'MEV Protected', value: '100%' },
-          { label: 'Hidden Volume', value: '🔒' },
+          { label: 'Hidden Volume', value: <Lock size={22} /> },
           { label: 'Network', value: 'Arb Sepolia' },
         ].map((stat) => (
           <div

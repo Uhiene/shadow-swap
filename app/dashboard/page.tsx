@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useChainId, useBalance, useSwitchChain } from 'wagmi';
 import { parseUnits } from 'viem';
 import Link from 'next/link';
+import { Plug, Lock, CheckCircle } from 'lucide-react';
 import GlowButton from '@/components/GlowButton';
 import { MOCK_ERC20_ABI, SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
@@ -122,7 +123,7 @@ export default function DashboardPage() {
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="glass rounded-2xl p-12 text-center max-w-md mx-auto">
-          <div className="text-5xl mb-4">🔌</div>
+          <div className="flex justify-center mb-4" style={{ color: 'var(--purple-glow)' }}><Plug size={48} strokeWidth={1} /></div>
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Connect Wallet</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Connect your wallet to view balances and manage your trades.</p>
         </div>
@@ -193,7 +194,7 @@ export default function DashboardPage() {
           sub="Shadow USD (testnet)"
           color="var(--purple-glow)"
         />
-        <StatCard label="csUSD Balance" value="🔒" sub="Encrypted on-chain" color="var(--magenta-crystal)" />
+        <StatCard label="csUSD Balance" value={<Lock size={22} />} sub="Encrypted on-chain" color="var(--magenta-crystal)" />
         <StatCard
           label="Reputation"
           value={tradeCount !== undefined ? tradeCount.toString() : '0'}
@@ -244,8 +245,8 @@ export default function DashboardPage() {
               </div>
 
               {mintStatus === 'done' && (
-                <p className="text-sm" style={{ color: 'var(--cyan-accent)' }}>
-                  ✓ Submitted! Balance will update in a few seconds.
+                <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}>
+                  <CheckCircle size={14} /> Submitted! Balance will update in a few seconds.
                 </p>
               )}
 
@@ -284,7 +285,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="space-y-3">
-            <Link href="/create" className="block"><GlowButton fullWidth>Wrap sUSD → csUSD 🔒</GlowButton></Link>
+            <Link href="/create" className="block"><GlowButton fullWidth><span className="flex items-center justify-center gap-2">Wrap sUSD → csUSD <Lock size={14} /></span></GlowButton></Link>
             <div className="px-4 py-3 rounded-xl text-xs" style={{ background: 'rgba(217,70,239,0.08)', border: '1px solid rgba(217,70,239,0.2)' }}>
               <span style={{ color: 'var(--magenta-crystal)' }}>Unwrap csUSD → sUSD: </span>
               <span style={{ color: 'var(--text-secondary)' }}>

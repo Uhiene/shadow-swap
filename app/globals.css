@@ -16,7 +16,7 @@
   --pink-hot: #EC4899;
   --pink-glow: #F472B6;
   --magenta-crystal: #D946EF;
-  --cyan-accent: #22D3EE;
+  --cyan-accent: #BEF264;
 
   /* Text */
   --text-primary: #F5F3FF;
@@ -26,7 +26,7 @@
   /* Effects */
   --glow-purple: 0 0 20px rgba(124, 58, 237, 0.5);
   --glow-pink: 0 0 20px rgba(236, 72, 153, 0.4);
-  --glow-cyan: 0 0 15px rgba(34, 211, 238, 0.4);
+  --glow-cyan: 0 0 15px rgba(190, 242, 100, 0.4);
 
   /* Gradients */
   --gradient-crystal: linear-gradient(135deg, #4A1FB8 0%, #7C3AED 30%, #D946EF 70%, #EC4899 100%);
@@ -42,7 +42,7 @@
 body {
   background: var(--bg-void);
   color: var(--text-primary);
-  font-family: 'DM Sans', 'General Sans', sans-serif;
+  font-family: 'Sora', sans-serif;
   min-height: 100vh;
 }
 

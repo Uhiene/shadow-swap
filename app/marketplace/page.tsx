@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useReadContract } from 'wagmi';
+import { Lock, Clock, Inbox, Package } from 'lucide-react';
 import { SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
 import { shortenAddress, formatExpiry } from '@/lib/utils';
@@ -50,22 +51,22 @@ function OfferCard({ offerId }: { offerId: number }) {
     <div className="glass rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 hover:bg-(--bg-elevated) hover:shadow-(--glow-purple) group">
       <div className="flex items-start justify-between">
         <div>
-          <span className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold">
-            🔒 Amount Hidden
+          <span className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold inline-flex items-center gap-1">
+            <Lock size={9} /> Amount Hidden
           </span>
           <div className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
             Offer #{offerId}
           </div>
         </div>
         <div
-          className="text-xs px-2 py-1 rounded-full"
+          className="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1"
           style={{
-            background: isExpiringSoon ? 'rgba(236,72,153,0.15)' : 'rgba(34,211,238,0.1)',
+            background: isExpiringSoon ? 'rgba(236,72,153,0.15)' : 'rgba(190,242,100,0.1)',
             color: isExpiringSoon ? 'var(--pink-hot)' : 'var(--cyan-accent)',
-            border: `1px solid ${isExpiringSoon ? 'rgba(236,72,153,0.3)' : 'rgba(34,211,238,0.3)'}`,
+            border: `1px solid ${isExpiringSoon ? 'rgba(236,72,153,0.3)' : 'rgba(190,242,100,0.3)'}`,
           }}
         >
-          ⏱ {expiryFormatted}
+          <Clock size={10} /> {expiryFormatted}
         </div>
       </div>
 
@@ -171,7 +172,9 @@ export default function MarketplacePage() {
 
       {!contractDeployed && (
         <div className="glass rounded-2xl p-12 text-center">
-          <div className="text-5xl mb-4">🔒</div>
+          <div className="flex justify-center mb-4" style={{ color: 'var(--purple-glow)' }}>
+            <Package size={48} strokeWidth={1} />
+          </div>
           <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             Contracts Not Deployed Yet
           </h3>
@@ -189,7 +192,9 @@ export default function MarketplacePage() {
 
       {contractDeployed && !countLoading && totalOffers === 0 && (
         <div className="glass rounded-2xl p-12 text-center">
-          <div className="text-5xl mb-4">📭</div>
+          <div className="flex justify-center mb-4" style={{ color: 'var(--text-muted)' }}>
+            <Inbox size={48} strokeWidth={1} />
+          </div>
           <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             No Active Offers
           </h3>

@@ -1,3 +1,5 @@
+import { Lock } from 'lucide-react';
+
 export default function Footer() {
   return (
     <footer
@@ -26,9 +28,9 @@ export default function Footer() {
           <span>Powered by iExec Nox</span>
           <span>·</span>
           <span
-            className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold"
+            className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold inline-flex items-center gap-1"
           >
-            🔒 Confidential
+            <Lock size={9} /> Confidential
           </span>
         </div>
       </div>

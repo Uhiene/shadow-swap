@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
 import { arbitrumSepolia } from "wagmi/chains";
+import { AlertTriangle } from "lucide-react";
 import { classNames } from "@/lib/utils";
 
 const navLinks = [
@@ -28,7 +29,7 @@ function WrongNetworkBanner() {
         color: "var(--pink-hot)",
       }}
     >
-      <span>⚠ Wrong network — you are spending real ETH. Switch to Arbitrum Sepolia testnet.</span>
+      <span className="flex items-center gap-1.5"><AlertTriangle size={14} /> Wrong network — you are spending real ETH. Switch to Arbitrum Sepolia testnet.</span>
       <button
         onClick={() => switchChain({ chainId: arbitrumSepolia.id })}
         disabled={isPending}

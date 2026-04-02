@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { parseUnits } from 'viem';
 import Link from 'next/link';
+import { Check, Lock, Shield, Plug, AlertTriangle, CheckCircle } from 'lucide-react';
 import GlowButton from '@/components/GlowButton';
 import { MOCK_ERC20_ABI, WRAPPED_CONFIDENTIAL_TOKEN_ABI, SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
@@ -25,12 +26,12 @@ function StepIndicator({ current }: { current: number }) {
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mb-1 transition-all duration-300"
               style={{
-                background: current > step.id ? 'var(--cyan-accent)' : current === step.id ? 'var(--gradient-button)' : 'var(--bg-elevated)',
+                background: current > step.id ? 'var(--gradient-button)' : current === step.id ? 'var(--gradient-button)' : 'var(--bg-elevated)',
                 color: current >= step.id ? '#fff' : 'var(--text-muted)',
                 boxShadow: current === step.id ? 'var(--glow-purple)' : 'none',
               }}
             >
-              {current > step.id ? '✓' : step.id}
+              {current > step.id ? <Check size={14} /> : step.id}
             </div>
             <span className="text-xs text-center" style={{ color: current >= step.id ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
               {step.label}
@@ -38,7 +39,7 @@ function StepIndicator({ current }: { current: number }) {
           </div>
           {i < STEPS.length - 1 && (
             <div className="h-px flex-1 mb-5 transition-all duration-500"
-              style={{ background: current > step.id + 1 ? 'var(--cyan-accent)' : 'rgba(167,139,250,0.2)' }} />
+              style={{ background: current > step.id + 1 ? 'rgba(167,139,250,0.5)' : 'rgba(167,139,250,0.2)' }} />
           )}
         </div>
       ))}
@@ -53,9 +54,11 @@ export default function CreatePage() {
   const { address, isConnected } = useAccount();
 
   const [amount, setAmount] = useState('');
-  const [buyTokenAddress, setBuyTokenAddress] = useState('');
   const [pricePerUnit, setPricePerUnit] = useState('');
   const [expiryHours, setExpiryHours] = useState('24');
+
+  // Buy token is always csUSD on this testnet — locked, not user-editable
+  const buyTokenAddress = CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN as `0x${string}`;
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -68,11 +71,12 @@ export default function CreatePage() {
 
   async function getFees() {
     try {
-      const block = await publicClient!.getBlock({ blockTag: 'latest' });
+      const { createPublicClient, http } = await import('viem');
+      const { arbitrumSepolia } = await import('wagmi/chains');
+      const client = createPublicClient({ chain: arbitrumSepolia, transport: http('https://sepolia-rollup.arbitrum.io/rpc') });
+      const block = await client.getBlock({ blockTag: 'latest' });
       const base = block.baseFeePerGas ?? 25_000_000n;
-      const maxFee = base * 2n;                // 2× current base fee
-      const priorityFee = base / 10n || 1n;   // 10% of base, min 1
-      return { maxFeePerGas: maxFee, maxPriorityFeePerGas: priorityFee };
+      return { maxFeePerGas: base * 2n, maxPriorityFeePerGas: base / 10n || 1n };
     } catch {
       return { maxFeePerGas: 200_000_000n, maxPriorityFeePerGas: 2_000_000n };
     }
@@ -86,14 +90,13 @@ export default function CreatePage() {
     query: { enabled: !!address },
   });
 
-const contractsDeployed =
+  const contractsDeployed =
     !!CONTRACT_ADDRESSES.MOCK_ERC20 &&
     !!CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN &&
     !!CONTRACT_ADDRESSES.SHADOW_SWAP_OTC;
 
   const parsedAmount = amount ? parseUnits(amount, 18) : 0n;
 
-  // Short pause to let Arbitrum include the block before the next step
   async function waitForBlock() {
     setLoadingMsg('Submitted — settling...');
     await new Promise((r) => setTimeout(r, 4000));
@@ -151,8 +154,6 @@ const contractsDeployed =
   async function handleSetOperator() {
     run('Set operator', async () => {
       const fees = await getFees();
-      // Grant the OTC contract permission to move csUSD on behalf of the user.
-      // uint48 far-future timestamp: year 2099
       await writeContractAsync({
         address: CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN,
         abi: WRAPPED_CONFIDENTIAL_TOKEN_ABI,
@@ -165,9 +166,8 @@ const contractsDeployed =
   }
 
   async function handleCreateOffer() {
-    if (!buyTokenAddress || !pricePerUnit || !amount) { setError('Fill in all fields'); return; }
+    if (!pricePerUnit || !amount) { setError('Fill in all fields'); return; }
     run('Create offer', async () => {
-      // Encrypt the sell amount using iExec Nox before submitting
       setLoadingMsg('Encrypting amount with Nox...');
       const encrypted = await encryptAmount(parsedAmount, CONTRACT_ADDRESSES.SHADOW_SWAP_OTC);
       if (!encrypted) throw new Error('Nox encryption failed — make sure your wallet is connected');
@@ -183,7 +183,7 @@ const contractsDeployed =
         functionName: 'createOffer',
         args: [
           CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN,
-          buyTokenAddress as `0x${string}`,
+          buyTokenAddress,
           price,
           encrypted.handle,
           encrypted.handleProof,
@@ -202,7 +202,7 @@ const contractsDeployed =
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="glass rounded-2xl p-12 text-center max-w-md mx-auto">
-          <div className="text-5xl mb-4">🔌</div>
+          <div className="flex justify-center mb-4" style={{ color: 'var(--purple-glow)' }}><Plug size={48} strokeWidth={1} /></div>
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Connect Wallet</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Connect your wallet to create a confidential OTC offer.</p>
         </div>
@@ -214,7 +214,7 @@ const contractsDeployed =
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="glass rounded-2xl p-12 text-center max-w-md mx-auto">
-          <div className="text-5xl mb-4">🚧</div>
+          <div className="flex justify-center mb-4" style={{ color: 'var(--pink-hot)' }}><AlertTriangle size={48} strokeWidth={1} /></div>
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Contracts Not Deployed</h2>
           <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
             Deploy contracts first and add addresses to <code style={{ color: 'var(--purple-glow)' }}>lib/contracts.ts</code>.
@@ -229,14 +229,14 @@ const contractsDeployed =
     return (
       <div className="max-w-2xl mx-auto px-6 py-12">
         <div className="glass rounded-2xl p-12 text-center space-y-4">
-          <div className="text-5xl">✅</div>
+          <div className="flex justify-center" style={{ color: 'var(--cyan-accent)' }}><CheckCircle size={56} strokeWidth={1} /></div>
           <h2 className="text-2xl font-bold" style={{ color: 'var(--cyan-accent)' }}>Offer Created!</h2>
           <p style={{ color: 'var(--text-secondary)' }}>
             Your confidential OTC offer is live. Buyers see the price — never the amount.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Link href="/marketplace"><GlowButton>View Marketplace →</GlowButton></Link>
-            <GlowButton variant="outline" onClick={() => { setStep(1); setAmount(''); setBuyTokenAddress(''); setPricePerUnit(''); setStepDone(false); setError(''); }}>
+            <GlowButton variant="outline" onClick={() => { setStep(1); setAmount(''); setPricePerUnit(''); setStepDone(false); setError(''); }}>
               Create Another
             </GlowButton>
           </div>
@@ -280,7 +280,7 @@ const contractsDeployed =
               />
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            {stepDone && <p className="text-sm" style={{ color: 'var(--cyan-accent)' }}>✓ Approved! Click Next to wrap tokens.</p>}
+            {stepDone && <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}><Check size={14} /> Approved! Click Next to wrap tokens.</p>}
             <div className="flex gap-3">
               <GlowButton onClick={handleApprove} loading={loading} fullWidth>
                 {loading ? loadingMsg : 'Approve sUSD'}
@@ -303,11 +303,11 @@ const contractsDeployed =
               </div>
               <div className="flex justify-between mt-1">
                 <span style={{ color: 'var(--text-muted)' }}>You receive</span>
-                <span className="font-mono" style={{ color: 'var(--cyan-accent)' }}>{amount} csUSD 🔒</span>
+                <span className="font-mono inline-flex items-center gap-1" style={{ color: 'var(--cyan-accent)' }}>{amount} csUSD <Lock size={12} /></span>
               </div>
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            {stepDone && <p className="text-sm" style={{ color: 'var(--cyan-accent)' }}>✓ Wrapped! Click Next to set offer details.</p>}
+            {stepDone && <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}><Check size={14} /> Wrapped! Click Next to set offer details.</p>}
             <div className="flex gap-3">
               <GlowButton variant="secondary" onClick={() => goToStep(1)}>← Back</GlowButton>
               <GlowButton onClick={handleWrap} loading={loading} fullWidth>
@@ -326,14 +326,14 @@ const contractsDeployed =
                 Allow the ShadowSwap OTC contract to move your csUSD tokens during a trade.
               </p>
             </div>
-            <div className="px-4 py-3 rounded-xl text-xs" style={{ background: 'rgba(34,211,238,0.07)', border: '1px solid rgba(34,211,238,0.15)' }}>
+            <div className="px-4 py-3 rounded-xl text-xs" style={{ background: 'rgba(190,242,100,0.07)', border: '1px solid rgba(190,242,100,0.15)' }}>
               <span style={{ color: 'var(--cyan-accent)' }}>Why? </span>
               <span style={{ color: 'var(--text-secondary)' }}>
                 ERC-7984 confidential tokens use an operator model. The OTC contract needs to be set as an operator on your csUSD so it can escrow the sell amount when you create an offer.
               </span>
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            {stepDone && <p className="text-sm" style={{ color: 'var(--cyan-accent)' }}>✓ Operator set! Click Next to create your offer.</p>}
+            {stepDone && <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}><Check size={14} /> Operator set! Click Next to create your offer.</p>}
             <div className="flex gap-3">
               <GlowButton variant="secondary" onClick={() => goToStep(2)}>← Back</GlowButton>
               <GlowButton onClick={handleSetOperator} loading={loading} fullWidth>
@@ -351,18 +351,28 @@ const contractsDeployed =
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Set your price and expiry. The sell amount stays encrypted on-chain.</p>
             </div>
             <div className="space-y-4">
+              {/* Buy token — pre-filled and locked, no confusion for judges */}
               <div>
-                <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Buy Token Address</label>
-                <input type="text" placeholder="0x..."
-                  value={buyTokenAddress} onChange={(e) => setBuyTokenAddress(e.target.value)}
-                  className={inputCls} style={inputBaseStyle}
-                  onFocus={(e) => (e.target.style.borderColor = 'var(--purple-bright)')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(167,139,250,0.2)')}
-                />
+                <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Buy Token</label>
+                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+                  The token the buyer pays with. Fixed to csUSD (confidential sUSD) on this testnet.
+                </p>
+                <div
+                  className="w-full px-4 py-3 rounded-xl text-sm font-mono flex items-center justify-between"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid rgba(167,139,250,0.1)', color: 'var(--purple-glow)' }}
+                >
+                  <span>{buyTokenAddress}</span>
+                  <span
+                    className="text-xs ml-3 px-2 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
+                    style={{ background: 'rgba(167,139,250,0.15)', color: 'var(--purple-soft)' }}
+                  >
+                    <Lock size={9} /> csUSD
+                  </span>
+                </div>
               </div>
               <div>
-                <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Price Per Unit</label>
-                <input type="text" inputMode="decimal" placeholder="e.g. 1.5"
+                <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Price Per Unit (in csUSD)</label>
+                <input type="text" inputMode="decimal" placeholder="e.g. 1.0"
                   value={pricePerUnit} onChange={(e) => setPricePerUnit(e.target.value.replace(/[^0-9.]/g, ''))}
                   className={inputCls} style={inputBaseStyle}
                   onFocus={(e) => (e.target.style.borderColor = 'var(--purple-bright)')}
@@ -382,7 +392,7 @@ const contractsDeployed =
               </div>
             </div>
             <div className="px-4 py-3 rounded-xl text-xs" style={{ background: 'rgba(217,70,239,0.08)', border: '1px solid rgba(217,70,239,0.2)' }}>
-              <span style={{ color: 'var(--magenta-crystal)' }}>🔒 Privacy Note: </span>
+              <span className="inline-flex items-center gap-1" style={{ color: 'var(--magenta-crystal)' }}><Shield size={11} /> Privacy Note: </span>
               <span style={{ color: 'var(--text-secondary)' }}>
                 Your sell amount ({amount} csUSD) will be encrypted using iExec Nox. Buyers only see the price per unit.
               </span>
@@ -391,7 +401,7 @@ const contractsDeployed =
             <div className="flex gap-3">
               <GlowButton variant="secondary" onClick={() => goToStep(3)}>← Back</GlowButton>
               <GlowButton onClick={handleCreateOffer} loading={loading || isEncrypting} fullWidth>
-                {isEncrypting ? 'Encrypting with Nox...' : loading ? loadingMsg : 'Create Offer 🔒'}
+                {isEncrypting ? 'Encrypting with Nox...' : loading ? loadingMsg : <span className="flex items-center gap-2">Create Offer <Lock size={14} /></span>}
               </GlowButton>
             </div>
           </>
