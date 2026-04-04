@@ -11,8 +11,8 @@ import {ERC20ToERC7984Wrapper} from "@iexec-nox/nox-confidential-contracts/contr
  *         Trade amounts are encrypted on-chain — MEV bots cannot see order sizes.
  */
 contract WrappedConfidentialToken is ERC20ToERC7984Wrapper {
-    constructor(IERC20 underlying_)
+    constructor(IERC20 underlying_, string memory name_, string memory symbol_)
         ERC20ToERC7984Wrapper(underlying_)
-        ERC7984("Wrapped Confidential Token", "wcTOKEN", "")
+        ERC7984(name_, symbol_, "")
     {}
 }

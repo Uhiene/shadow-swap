@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useReadContract } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { Lock } from 'lucide-react';
@@ -99,12 +98,8 @@ export default function HomePage() {
         </p>
 
         <div className="fade-in fade-in-5 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/marketplace">
-            <GlowButton size="lg">Browse Offers</GlowButton>
-          </Link>
-          <Link href="/create">
-            <GlowButton size="lg" variant="outline">Create Offer</GlowButton>
-          </Link>
+          <GlowButton href="/marketplace" size="lg">Browse Offers</GlowButton>
+          <GlowButton href="/create" size="lg" variant="outline">Create Offer</GlowButton>
         </div>
       </section>
 
@@ -121,7 +116,7 @@ export default function HomePage() {
             className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:bg-(--bg-elevated)"
           >
             <div
-              className="text-2xl md:text-3xl font-bold mb-1"
+              className="flex items-center justify-center text-2xl md:text-3xl font-bold mb-1 min-h-[36px]"
               style={{ color: 'var(--purple-glow)', fontFamily: 'var(--font-mono), monospace' }}
             >
               {stat.value}
@@ -229,17 +224,11 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           {isConnected ? (
             <>
-              <Link href="/dashboard">
-                <GlowButton size="lg">Go to Dashboard</GlowButton>
-              </Link>
-              <Link href="/marketplace">
-                <GlowButton size="lg" variant="outline">View Offers</GlowButton>
-              </Link>
+              <GlowButton href="/dashboard" size="lg">Go to Dashboard</GlowButton>
+              <GlowButton href="/marketplace" size="lg" variant="outline">View Offers</GlowButton>
             </>
           ) : (
-            <Link href="/dashboard">
-              <GlowButton size="lg">Connect &amp; Get Started</GlowButton>
-            </Link>
+            <GlowButton href="/dashboard" size="lg">Connect &amp; Get Started</GlowButton>
           )}
         </div>
       </section>

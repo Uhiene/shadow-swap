@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CrystalBackground from "@/components/CrystalBackground";
 import GuardianTour from "@/components/GuardianTour";
+import Bubbles from "@/components/Bubbles";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         <Providers>
           <CrystalBackground />
+          <Bubbles/>
           <div className="relative z-10 flex flex-col min-h-screen">
             <Navbar />
             <main className="flex-1">{children}</main>

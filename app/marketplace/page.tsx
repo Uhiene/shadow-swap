@@ -6,7 +6,7 @@ import { useReadContract } from 'wagmi';
 import { Lock, Clock, Inbox, Package } from 'lucide-react';
 import { SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
-import { shortenAddress, formatExpiry } from '@/lib/utils';
+import { getTokenName, shortenAddress, formatExpiry } from '@/lib/utils';
 import GlowButton from '@/components/GlowButton';
 
 type SortOption = 'newest' | 'expiry' | 'price_asc' | 'price_desc';
@@ -40,16 +40,13 @@ function OfferCard({ offerId }: { offerId: number }) {
   const priceFormatted = (Number(pricePerUnit) / 1e18).toFixed(6);
 
   return (
-    <div className="glass rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 hover:bg-(--bg-elevated) hover:shadow-(--glow-purple) group">
-      <div className="flex items-start justify-between">
-        <div>
-          <span className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold inline-flex items-center gap-1">
-            <Lock size={9} /> Amount Hidden
-          </span>
-          <div className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
-            Offer #{offerId}
-          </div>
-        </div>
+    <div className="glass rounded-2xl p-6 flex flex-col gap-3 transition-all duration-300 hover:bg-(--bg-elevated) hover:shadow-(--glow-purple)">
+
+      {/* Top row: badge + expiry */}
+      <div className="flex items-center justify-between">
+        <span className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold inline-flex items-center gap-1">
+          <Lock size={9} /> Amount Hidden
+        </span>
         <div
           className="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1"
           style={{
@@ -62,37 +59,28 @@ function OfferCard({ offerId }: { offerId: number }) {
         </div>
       </div>
 
+      {/* Offer # */}
+      <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Offer #{offerId}</div>
+
+      <div style={{ borderTop: '1px solid rgba(167,139,250,0.1)' }} />
+
+      {/* Rows */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Sell Token</span>
-          <span className="text-xs font-mono" style={{ color: 'var(--purple-glow)' }}>
-            {shortenAddress(sellToken)}
-          </span>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Token</span>
+          <span className="text-sm font-semibold" style={{ color: 'var(--purple-glow)' }}>{getTokenName(sellToken)}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Buy Token</span>
-          <span className="text-xs font-mono" style={{ color: 'var(--purple-glow)' }}>
-            {shortenAddress(buyToken)}
-          </span>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Rate</span>
+          <span className="text-sm font-semibold font-mono" style={{ color: 'var(--text-primary)' }}>{priceFormatted} {getTokenName(buyToken)} / unit</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Price / Unit</span>
-          <span className="text-sm font-semibold font-mono" style={{ color: 'var(--text-primary)' }}>
-            {priceFormatted}
-          </span>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Seller</span>
+          <span className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>{shortenAddress(seller)}</span>
         </div>
       </div>
 
       <div style={{ borderTop: '1px solid rgba(167,139,250,0.1)' }} />
-
-      <div className="flex justify-between items-center">
-        <div>
-          <div className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Seller</div>
-          <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-            {shortenAddress(seller)}
-          </div>
-        </div>
-      </div>
 
       <Link href={`/trade/${offerId}`} className="w-full">
         <GlowButton fullWidth size="sm">Take Offer →</GlowButton>

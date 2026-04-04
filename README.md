@@ -18,7 +18,7 @@ MEV (Maximal Extractable Value) bots front-run large trades on public DEXs, cost
 
 ## The Solution
 
-ShadowSwap hides order sizes using **iExec Nox ERC-7984 confidential tokens**. The sell amount is encrypted before it ever touches the chain. On-chain, the encrypted handle is an opaque value — no one, including miners and validators, can read the actual trade size.
+ShadowSwap hides order sizes using **iExec Nox ERC-7984 confidential tokens**. The sell amount is encrypted before it ever touches the chain. On-chain, the encrypted handle is an opaque value, no one, including miners and validators, can read the actual trade size.
 
 | Public DEX | ShadowSwap |
 |---|---|
@@ -34,11 +34,11 @@ ShadowSwap hides order sizes using **iExec Nox ERC-7984 confidential tokens**. T
 
 | Landing Page | Dashboard | Marketplace |
 |---|---|---|
-| ![Landing](docs/screenshots/landing.png) | ![Dashboard](docs/screenshots/dashboard.png) | ![Marketplace](docs/screenshots/marketplace.png) |
+| ![Landing](public/screenshots/createOffer.png) | ![Dashboard](public/screenshots/dashboard.png) | ![Marketplace](public/screenshots/marketPage.png) |
 
 | Create Offer | Trade / Take Offer |
 |---|---|
-| ![Create](docs/screenshots/create.png) | ![Trade](docs/screenshots/trade.png) |
+| ![Create](public/screenshots/createOffer.png) | ![Trade](docs/screenshots/trade.png) |
 
 ---
 
@@ -165,7 +165,7 @@ Traditional `require(balance >= amount)` leaks information — the revert itself
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/shadowswap.git
+git clone https://github.com/Uhiene/shadow-swap
 cd shadowswap
 npm install
 ```
@@ -292,23 +292,16 @@ shadowswap/
 
 | Name | Role | Contact |
 |---|---|---|
-| _Your Name_ | Founder & Full-Stack | [@yourhandle](#) |
-| _Team Member_ | Smart Contract Engineer | [@yourhandle](#) |
-| _Team Member_ | Design & Frontend | [@yourhandle](#) |
+| _Code Duchess_ | Founder & Full-Stack | [@yourhandle](#) |
 
 ---
 
 ## Built At
 
-> _Hackathon name · Date · Track_
+> _iExec Vibe Coding Challenge · 4/4/2026 ·_
 
 ---
 
-## License
-
-MIT — see [LICENSE](LICENSE).
-
----
 
 <div align="center">
   <strong>ShadowSwap — Trade Large. Stay Hidden.</strong><br/>

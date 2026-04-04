@@ -1,4 +1,12 @@
 import { formatUnits, parseUnits } from 'viem';
+import { CONTRACT_ADDRESSES } from './contracts';
+
+export function getTokenName(address: string): string {
+  const addr = address.toLowerCase();
+  if (addr === CONTRACT_ADDRESSES.MOCK_ERC20.toLowerCase()) return 'sUSD';
+  if (addr === CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN.toLowerCase()) return 'csUSD';
+  return shortenAddress(address);
+}
 
 export function shortenAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`;

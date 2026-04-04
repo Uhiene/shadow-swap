@@ -7,7 +7,7 @@ import { AlertTriangle, XCircle, Lock, Clock, CheckCircle, Shield, Check } from 
 import GlowButton from '@/components/GlowButton';
 import { SHADOW_SWAP_OTC_ABI, WRAPPED_CONFIDENTIAL_TOKEN_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
-import { shortenAddress, formatExpiry } from '@/lib/utils';
+import { shortenAddress, getTokenName, formatExpiry } from '@/lib/utils';
 import { useNoxHandle } from '@/hooks/useNoxHandle';
 import { parseUnits } from 'viem';
 
@@ -206,36 +206,35 @@ export default function TradePage({ params }: { params: Promise<{ id: string }> 
       <h1 className="text-4xl font-bold mb-8" style={{ color: 'var(--text-primary)' }}>Take Offer</h1>
 
       {/* Offer details */}
-      <div className="glass rounded-2xl p-6 mb-6 space-y-4">
+      <div className="glass rounded-2xl p-6 mb-6 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Offer #{id}</h2>
-          <div className="flex items-center gap-2">
-            <span className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold inline-flex items-center gap-1"><Lock size={9} /> Amount Hidden</span>
-            {isExpired ? (
-              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', color: 'var(--pink-hot)' }}>Expired</span>
-            ) : (
-              <span className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1" style={{ background: 'rgba(190,242,100,0.1)', color: 'var(--cyan-accent)' }}><Clock size={10} /> {expiryFormatted}</span>
-            )}
-          </div>
+          <span className="hidden-badge px-2 py-0.5 rounded-full text-white text-[10px] font-semibold inline-flex items-center gap-1">
+            <Lock size={9} /> Amount Hidden
+          </span>
+          {isExpired ? (
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', color: 'var(--pink-hot)' }}>Expired</span>
+          ) : (
+            <span className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1" style={{ background: 'rgba(190,242,100,0.1)', color: 'var(--cyan-accent)' }}><Clock size={10} /> {expiryFormatted}</span>
+          )}
         </div>
+
+        <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Offer #{id}</div>
 
         <div style={{ borderTop: '1px solid rgba(167,139,250,0.1)' }} />
 
-        <div className="grid grid-cols-2 gap-y-3 text-sm">
-          <span style={{ color: 'var(--text-muted)' }}>Seller</span>
-          <span className="text-right font-mono" style={{ color: 'var(--text-secondary)' }}>{shortenAddress(seller)}</span>
-
-          <span style={{ color: 'var(--text-muted)' }}>Sell Token</span>
-          <span className="text-right font-mono text-xs" style={{ color: 'var(--purple-glow)' }}>{shortenAddress(sellToken)}</span>
-
-          <span style={{ color: 'var(--text-muted)' }}>Buy Token</span>
-          <span className="text-right font-mono text-xs" style={{ color: 'var(--purple-glow)' }}>{shortenAddress(buyToken)}</span>
-
-          <span style={{ color: 'var(--text-muted)' }}>Sell Amount</span>
-          <span className="text-right font-semibold inline-flex items-center gap-1 justify-end" style={{ color: 'var(--magenta-crystal)' }}><Lock size={12} /> Encrypted</span>
-
-          <span style={{ color: 'var(--text-muted)' }}>Price / Unit</span>
-          <span className="text-right font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{priceFormatted}</span>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span style={{ color: 'var(--text-muted)' }}>Token</span>
+            <span className="font-semibold" style={{ color: 'var(--purple-glow)' }}>{getTokenName(sellToken)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span style={{ color: 'var(--text-muted)' }}>Rate</span>
+            <span className="font-semibold font-mono" style={{ color: 'var(--text-primary)' }}>{priceFormatted} {getTokenName(buyToken)} / unit</span>
+          </div>
+          <div className="flex justify-between">
+            <span style={{ color: 'var(--text-muted)' }}>Seller</span>
+            <span className="font-mono" style={{ color: 'var(--text-secondary)' }}>{shortenAddress(seller)}</span>
+          </div>
         </div>
       </div>
 
@@ -258,18 +257,29 @@ export default function TradePage({ params }: { params: Promise<{ id: string }> 
           <div className="flex justify-center" style={{ color: 'var(--cyan-accent)' }}><CheckCircle size={40} strokeWidth={1.5} /></div>
           <h3 className="font-semibold text-lg" style={{ color: 'var(--cyan-accent)' }}>Trade Successful!</h3>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Confidential tokens exchanged. Check your dashboard for balances.
+            Confidential tokens exchanged. Your csUSD balance has changed — go to Dashboard and click <strong>Reveal</strong> to see your updated balance.
           </p>
-          <Link href="/dashboard"><GlowButton fullWidth>Go to Dashboard</GlowButton></Link>
+          <Link href="/dashboard"><GlowButton fullWidth>Go to Dashboard →</GlowButton></Link>
         </div>
       )}
 
       {isConnected && !success && !cancelSuccess && isSeller && (
-        <div className="glass rounded-2xl p-8 text-center space-y-4">
-          <p style={{ color: 'var(--text-secondary)' }}>This is your own offer.</p>
+        <div className="space-y-4">
+          <div
+            className="rounded-2xl p-5 flex items-start gap-4"
+            style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.35)' }}
+          >
+            <XCircle size={22} className="shrink-0 mt-0.5" style={{ color: 'var(--pink-hot)' }} />
+            <div>
+              <p className="font-semibold text-sm mb-1" style={{ color: 'var(--pink-hot)' }}>You cannot take your own offer</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                You created this offer. Only other wallets can take it. You can cancel it below to get your csUSD back.
+              </p>
+            </div>
+          </div>
           {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
           <GlowButton variant="danger" onClick={handleCancel} loading={loading} fullWidth>
-            {loading ? 'Confirm in MetaMask...' : 'Cancel Offer'}
+            {loading ? 'Confirm in MetaMask...' : 'Cancel Offer & Reclaim csUSD'}
           </GlowButton>
         </div>
       )}
@@ -354,17 +364,19 @@ export default function TradePage({ params }: { params: Promise<{ id: string }> 
                 />
               </div>
 
-              {buyAmount && !isNaN(parseFloat(buyAmount)) && (
-                <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'var(--bg-elevated)' }}>
-                  <div className="flex justify-between">
-                    <span style={{ color: 'var(--text-muted)' }}>You pay</span>
-                    <span className="font-mono inline-flex items-center gap-1" style={{ color: 'var(--purple-glow)' }}>
-                      <Lock size={12} /> {(parseFloat(buyAmount) * parseFloat(priceFormatted)).toFixed(4)} csUSD
+              {buyAmount && !isNaN(parseFloat(buyAmount)) && parseFloat(buyAmount) > 0 && (
+                <div className="rounded-xl text-sm overflow-hidden" style={{ border: '1px solid rgba(167,139,250,0.15)' }}>
+                  <div className="flex justify-between items-center px-4 py-2.5" style={{ background: 'rgba(217,70,239,0.08)' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>You send</span>
+                    <span className="font-mono font-semibold inline-flex items-center gap-1" style={{ color: 'var(--magenta-crystal)' }}>
+                      <Lock size={11} /> {(parseFloat(buyAmount) * parseFloat(priceFormatted)).toFixed(4)} {getTokenName(buyToken)}
                     </span>
                   </div>
-                  <div className="flex justify-between mt-1">
+                  <div className="flex justify-between items-center px-4 py-2.5" style={{ background: 'rgba(34,211,238,0.06)' }}>
                     <span style={{ color: 'var(--text-muted)' }}>You receive</span>
-                    <span className="font-mono inline-flex items-center gap-1" style={{ color: 'var(--cyan-accent)' }}><Lock size={12} /> {buyAmount} csUSD</span>
+                    <span className="font-mono font-semibold inline-flex items-center gap-1" style={{ color: 'var(--cyan-accent)' }}>
+                      <Lock size={11} /> {buyAmount} {getTokenName(sellToken)}
+                    </span>
                   </div>
                 </div>
               )}

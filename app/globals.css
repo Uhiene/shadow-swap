@@ -70,6 +70,7 @@ body {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0.6;
+  pointer-events: none;
 }
 
 /* Glow button */

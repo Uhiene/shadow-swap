@@ -57,7 +57,6 @@ export default function CreatePage() {
   const [pricePerUnit, setPricePerUnit] = useState('');
   const [expiryHours, setExpiryHours] = useState('168');
 
-  // Buy token is always csUSD on this testnet — locked, not user-editable
   const buyTokenAddress = CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN as `0x${string}`;
 
   const [step, setStep] = useState(1);
@@ -102,7 +101,8 @@ export default function CreatePage() {
     await new Promise((r) => setTimeout(r, 4000));
   }
 
-  async function run(label: string, fn: () => Promise<void>) {
+  // Run a step, mark done, then auto-advance after a short success flash
+  async function run(label: string, fn: () => Promise<void>, nextStep?: number) {
     setError('');
     setLoading(true);
     setLoadingMsg('Confirm in MetaMask...');
@@ -110,6 +110,12 @@ export default function CreatePage() {
     try {
       await fn();
       setStepDone(true);
+      if (nextStep) {
+        await new Promise((r) => setTimeout(r, 1200));
+        setStep(nextStep);
+        setStepDone(false);
+        setError('');
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (!msg.toLowerCase().includes('rejected') && !msg.toLowerCase().includes('denied') && !msg.toLowerCase().includes('cancelled')) {
@@ -133,7 +139,7 @@ export default function CreatePage() {
         ...fees,
       });
       await waitForBlock();
-    });
+    }, 2);
   }
 
   async function handleWrap() {
@@ -148,7 +154,7 @@ export default function CreatePage() {
         ...fees,
       });
       await waitForBlock();
-    });
+    }, 3);
   }
 
   async function handleSetOperator() {
@@ -162,7 +168,7 @@ export default function CreatePage() {
         ...fees,
       });
       await waitForBlock();
-    });
+    }, 4);
   }
 
   async function handleCreateOffer() {
@@ -195,8 +201,6 @@ export default function CreatePage() {
       setStep(5);
     });
   }
-
-  function goToStep(next: number) { setStep(next); setStepDone(false); setError(''); }
 
   if (!isConnected) {
     return (
@@ -235,7 +239,7 @@ export default function CreatePage() {
             Your confidential OTC offer is live. Buyers see the price — never the amount.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Link href="/marketplace"><GlowButton>View Marketplace →</GlowButton></Link>
+            <GlowButton href="/marketplace">View Marketplace →</GlowButton>
             <GlowButton variant="outline" onClick={() => { setStep(1); setAmount(''); setPricePerUnit(''); setStepDone(false); setError(''); }}>
               Create Another
             </GlowButton>
@@ -273,20 +277,22 @@ export default function CreatePage() {
               <input
                 type="text" inputMode="decimal" placeholder="e.g. 1000"
                 value={amount}
-                onChange={(e) => { setAmount(e.target.value.replace(/[^0-9.]/g, '')); setStepDone(false); setError(''); }}
-                className={inputCls} style={inputBaseStyle}
+                disabled={stepDone}
+                onChange={(e) => { setAmount(e.target.value.replace(/[^0-9.]/g, '')); setError(''); }}
+                className={inputCls} style={{ ...inputBaseStyle, opacity: stepDone ? 0.5 : 1 }}
                 onFocus={(e) => (e.target.style.borderColor = 'var(--purple-bright)')}
                 onBlur={(e) => (e.target.style.borderColor = 'rgba(167,139,250,0.2)')}
               />
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            {stepDone && <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}><Check size={14} /> Approved! Click Next to wrap tokens.</p>}
-            <div className="flex gap-3">
-              <GlowButton onClick={handleApprove} loading={loading} fullWidth>
-                {loading ? loadingMsg : 'Approve sUSD'}
-              </GlowButton>
-              {stepDone && <GlowButton variant="secondary" onClick={() => goToStep(2)} fullWidth>Next →</GlowButton>}
-            </div>
+            {stepDone && (
+              <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}>
+                <Check size={14} /> Approved! Moving to next step...
+              </p>
+            )}
+            <GlowButton onClick={handleApprove} loading={loading} disabled={stepDone} fullWidth>
+              {stepDone ? <span className="flex items-center gap-2"><Check size={14} /> Approved</span> : loading ? loadingMsg : 'Approve sUSD'}
+            </GlowButton>
           </>
         )}
 
@@ -307,14 +313,14 @@ export default function CreatePage() {
               </div>
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            {stepDone && <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}><Check size={14} /> Wrapped! Click Next to set offer details.</p>}
-            <div className="flex gap-3">
-              <GlowButton variant="secondary" onClick={() => goToStep(1)}>← Back</GlowButton>
-              <GlowButton onClick={handleWrap} loading={loading} fullWidth>
-                {loading ? loadingMsg : `Wrap ${amount} sUSD`}
-              </GlowButton>
-              {stepDone && <GlowButton variant="secondary" onClick={() => goToStep(3)}>Next →</GlowButton>}
-            </div>
+            {stepDone && (
+              <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}>
+                <Check size={14} /> Wrapped! Moving to next step...
+              </p>
+            )}
+            <GlowButton onClick={handleWrap} loading={loading} disabled={stepDone} fullWidth>
+              {stepDone ? <span className="flex items-center gap-2"><Check size={14} /> Wrapped</span> : loading ? loadingMsg : `Wrap ${amount} sUSD`}
+            </GlowButton>
           </>
         )}
 
@@ -333,14 +339,14 @@ export default function CreatePage() {
               </span>
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            {stepDone && <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}><Check size={14} /> Operator set! Click Next to create your offer.</p>}
-            <div className="flex gap-3">
-              <GlowButton variant="secondary" onClick={() => goToStep(2)}>← Back</GlowButton>
-              <GlowButton onClick={handleSetOperator} loading={loading} fullWidth>
-                {loading ? loadingMsg : 'Approve OTC Contract'}
-              </GlowButton>
-              {stepDone && <GlowButton variant="secondary" onClick={() => goToStep(4)}>Next →</GlowButton>}
-            </div>
+            {stepDone && (
+              <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--cyan-accent)' }}>
+                <Check size={14} /> Approved! Moving to next step...
+              </p>
+            )}
+            <GlowButton onClick={handleSetOperator} loading={loading} disabled={stepDone} fullWidth>
+              {stepDone ? <span className="flex items-center gap-2"><Check size={14} /> Approved</span> : loading ? loadingMsg : 'Approve OTC Contract'}
+            </GlowButton>
           </>
         )}
 
@@ -351,25 +357,6 @@ export default function CreatePage() {
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Set your price and expiry. The sell amount stays encrypted on-chain.</p>
             </div>
             <div className="space-y-4">
-              {/* Buy token — pre-filled and locked, no confusion for judges */}
-              <div>
-                <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Buy Token</label>
-                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
-                  The token the buyer pays with. Fixed to csUSD (confidential sUSD) on this testnet.
-                </p>
-                <div
-                  className="w-full px-4 py-3 rounded-xl text-sm font-mono flex items-center justify-between"
-                  style={{ background: 'var(--bg-elevated)', border: '1px solid rgba(167,139,250,0.1)', color: 'var(--purple-glow)' }}
-                >
-                  <span>{buyTokenAddress}</span>
-                  <span
-                    className="text-xs ml-3 px-2 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
-                    style={{ background: 'rgba(167,139,250,0.15)', color: 'var(--purple-soft)' }}
-                  >
-                    <Lock size={9} /> csUSD
-                  </span>
-                </div>
-              </div>
               <div>
                 <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Price Per Unit (in csUSD)</label>
                 <input type="text" inputMode="decimal" placeholder="e.g. 1.0"
@@ -398,12 +385,9 @@ export default function CreatePage() {
               </span>
             </div>
             {error && <p className="text-sm" style={{ color: 'var(--pink-hot)' }}>{error}</p>}
-            <div className="flex gap-3">
-              <GlowButton variant="secondary" onClick={() => goToStep(3)}>← Back</GlowButton>
-              <GlowButton onClick={handleCreateOffer} loading={loading || isEncrypting} fullWidth>
-                {isEncrypting ? 'Encrypting with Nox...' : loading ? loadingMsg : <span className="flex items-center gap-2">Create Offer <Lock size={14} /></span>}
-              </GlowButton>
-            </div>
+            <GlowButton onClick={handleCreateOffer} loading={loading || isEncrypting} fullWidth>
+              {isEncrypting ? 'Encrypting with Nox...' : loading ? loadingMsg : <span className="flex items-center gap-2">Create Offer <Lock size={14} /></span>}
+            </GlowButton>
           </>
         )}
       </div>
