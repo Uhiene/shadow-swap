@@ -38,7 +38,7 @@ ShadowSwap hides order sizes using **iExec Nox ERC-7984 confidential tokens**. T
 
 | Create Offer | Trade / Take Offer |
 |---|---|
-| ![Create](public/screenshots/createOffer.png) | ![Trade](docs/screenshots/trade.png) |
+| ![Create](public/screenshots/createOffer.png) | ![Trade](public/screenshots/takeOffer.png) |
 
 ---
 
