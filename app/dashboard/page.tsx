@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useChainId, useBalance, useSwitchChain } from 'wagmi';
 import { parseUnits } from 'viem';
 import Link from 'next/link';
-import { Plug, Lock, CheckCircle } from 'lucide-react';
+import { Plug, Lock, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import GlowButton from '@/components/GlowButton';
-import { MOCK_ERC20_ABI, SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
+import { MOCK_ERC20_ABI, WRAPPED_CONFIDENTIAL_TOKEN_ABI, SHADOW_SWAP_OTC_ABI } from '@/lib/abi';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
 import { shortenAddress } from '@/lib/utils';
 import { ARBITRUM_SEPOLIA_CHAIN_ID } from '@/lib/config';
+import { useNoxHandle } from '@/hooks/useNoxHandle';
 
 function StatCard({ label, value, sub, color }: { label: string; value: React.ReactNode; sub?: string; color?: string }) {
   return (
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
+  const { decryptHandle, isDecrypting } = useNoxHandle();
 
   const isWrongNetwork = isConnected && chainId !== ARBITRUM_SEPOLIA_CHAIN_ID;
 
@@ -34,6 +36,9 @@ export default function DashboardPage() {
   const [isMinting, setIsMinting] = useState(false);
   const [mintStatus, setMintStatus] = useState<'idle' | 'done' | 'error'>('idle');
   const [mintError, setMintError] = useState('');
+
+  const [csUSDRevealed, setCsUSDRevealed] = useState<bigint | null>(null);
+  const [csUSDDecryptError, setCsUSDDecryptError] = useState('');
 
   const { data: ethBalance } = useBalance({
     address,
@@ -47,14 +52,6 @@ export default function DashboardPage() {
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
     query: { enabled: !!address && !!CONTRACT_ADDRESSES.MOCK_ERC20, refetchInterval: 3000 },
-  });
-
-  const { data: tradeCount } = useReadContract({
-    address: CONTRACT_ADDRESSES.SHADOW_SWAP_OTC,
-    abi: SHADOW_SWAP_OTC_ABI,
-    functionName: 'tradeCount',
-    args: address ? [address] : undefined,
-    query: { enabled: !!address && !!CONTRACT_ADDRESSES.SHADOW_SWAP_OTC },
   });
 
   const { data: offerCount } = useReadContract({
@@ -114,6 +111,46 @@ export default function DashboardPage() {
     } finally {
       setIsMinting(false);
     }
+  }
+
+  async function handleRevealCsUSD() {
+    if (!address) return;
+    setCsUSDDecryptError('');
+    setCsUSDRevealed(null);
+    try {
+      const { createPublicClient, http } = await import('viem');
+      const { arbitrumSepolia } = await import('wagmi/chains');
+      const publicClient = createPublicClient({
+        chain: arbitrumSepolia,
+        transport: http('https://sepolia-rollup.arbitrum.io/rpc'),
+      });
+      const handle = await publicClient.readContract({
+        address: CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN as `0x${string}`,
+        abi: WRAPPED_CONFIDENTIAL_TOKEN_ABI,
+        functionName: 'confidentialBalanceOf',
+        args: [address],
+      }) as `0x${string}`;
+
+      const zeroHandle = '0x' + '0'.repeat(64);
+      if (!handle || handle === zeroHandle) {
+        setCsUSDDecryptError('No csUSD balance found. Wrap some sUSD tokens first.');
+        return;
+      }
+
+      const result = await decryptHandle(handle);
+      if (result === null) {
+        setCsUSDDecryptError('Decryption failed — your wallet may not have permission yet.');
+      } else {
+        setCsUSDRevealed(result);
+      }
+    } catch {
+      setCsUSDDecryptError('Could not read csUSD balance. Make sure you are on Arbitrum Sepolia.');
+    }
+  }
+
+  function handleHideCsUSD() {
+    setCsUSDRevealed(null);
+    setCsUSDDecryptError('');
   }
 
   const contractsDeployed = !!CONTRACT_ADDRESSES.MOCK_ERC20 && !!CONTRACT_ADDRESSES.SHADOW_SWAP_OTC;
@@ -187,20 +224,57 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         <StatCard
           label="sUSD Balance"
           value={shownBalance !== undefined ? `${(Number(shownBalance) / 1e18).toFixed(2)}` : '...'}
           sub="Shadow USD (testnet)"
           color="var(--purple-glow)"
         />
-        <StatCard label="csUSD Balance" value={<Lock size={22} />} sub="Encrypted on-chain" color="var(--magenta-crystal)" />
-        <StatCard
-          label="Reputation"
-          value={tradeCount !== undefined ? tradeCount.toString() : '0'}
-          sub="Completed trades"
-          color="var(--cyan-accent)"
-        />
+
+        {/* csUSD — encrypted, reveal on click */}
+        <div className="glass rounded-2xl p-5 flex flex-col gap-2 transition-all duration-300 hover:bg-(--bg-elevated)">
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>csUSD Balance</div>
+          {csUSDRevealed !== null ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-2xl font-bold font-mono" style={{ color: 'var(--magenta-crystal)' }}>
+                {(Number(csUSDRevealed) / 1e18).toFixed(4)}
+              </div>
+              <button
+                onClick={handleHideCsUSD}
+                className="p-1.5 rounded-lg transition-all"
+                style={{ color: 'var(--text-muted)' }}
+                title="Hide balance"
+              >
+                <EyeOff size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleRevealCsUSD}
+              disabled={isDecrypting}
+              className="flex items-center gap-2 text-left cursor-pointer transition-all duration-200 disabled:opacity-50"
+              style={{ color: 'var(--magenta-crystal)' }}
+            >
+              {isDecrypting ? (
+                <span className="text-sm animate-pulse">Decrypting...</span>
+              ) : (
+                <>
+                  <Lock size={20} />
+                  <span className="text-sm underline underline-offset-2" style={{ color: 'var(--text-secondary)' }}>
+                    Click to reveal
+                  </span>
+                  <Eye size={13} style={{ color: 'var(--text-muted)' }} />
+                </>
+              )}
+            </button>
+          )}
+          {csUSDDecryptError && (
+            <p className="text-xs" style={{ color: 'var(--pink-hot)' }}>{csUSDDecryptError}</p>
+          )}
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Confidential csUSD</div>
+        </div>
+
         <StatCard
           label="Total Offers"
           value={offerCount !== undefined ? offerCount.toString() : '0'}

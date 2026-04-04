@@ -32,22 +32,13 @@ export default function TradePage({ params }: { params: Promise<{ id: string }> 
     args: [offerId],
   });
 
-  const { data: sellerRep } = useReadContract({
-    address: CONTRACT_ADDRESSES.SHADOW_SWAP_OTC,
-    abi: SHADOW_SWAP_OTC_ABI,
-    functionName: 'tradeCount',
-    args: offer ? [offer[0]] : undefined,
-    query: { enabled: !!offer },
-  });
-
   // Check if OTC is already set as operator for this buyer
   const { data: isOperatorAlready } = useReadContract({
     address: CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN as `0x${string}`,
     abi: WRAPPED_CONFIDENTIAL_TOKEN_ABI,
     functionName: 'isOperator',
     args: address ? [address, CONTRACT_ADDRESSES.SHADOW_SWAP_OTC as `0x${string}`] : undefined,
-    query: { enabled: !!address && !!CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN },
-    refetchInterval: 4000,
+    query: { enabled: !!address && !!CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN, refetchInterval: 4000 },
   });
 
   const { writeContractAsync } = useWriteContract();
@@ -119,8 +110,16 @@ export default function TradePage({ params }: { params: Promise<{ id: string }> 
       });
       setSuccess(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (!msg.toLowerCase().includes('rejected')) setError('Trade failed. Try again.');
+      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+      if (!msg.includes('rejected') && !msg.includes('denied') && !msg.includes('cancelled')) {
+        if (msg.includes('insufficient') || msg.includes('balance') || msg.includes('transfer')) {
+          setError('Not enough csUSD. Go to Dashboard and wrap more sUSD tokens first.');
+        } else if (msg.includes('operator') || msg.includes('allowance')) {
+          setError('OTC contract not approved. Go back to Step 1 and approve it.');
+        } else {
+          setError('Trade failed. Make sure you have enough csUSD and try again.');
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -225,11 +224,6 @@ export default function TradePage({ params }: { params: Promise<{ id: string }> 
         <div className="grid grid-cols-2 gap-y-3 text-sm">
           <span style={{ color: 'var(--text-muted)' }}>Seller</span>
           <span className="text-right font-mono" style={{ color: 'var(--text-secondary)' }}>{shortenAddress(seller)}</span>
-
-          <span style={{ color: 'var(--text-muted)' }}>Reputation</span>
-          <span className="text-right font-semibold" style={{ color: 'var(--cyan-accent)' }}>
-            {sellerRep !== undefined ? `${sellerRep.toString()} trades` : '—'}
-          </span>
 
           <span style={{ color: 'var(--text-muted)' }}>Sell Token</span>
           <span className="text-right font-mono text-xs" style={{ color: 'var(--purple-glow)' }}>{shortenAddress(sellToken)}</span>

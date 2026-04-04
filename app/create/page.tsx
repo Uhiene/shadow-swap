@@ -55,7 +55,7 @@ export default function CreatePage() {
 
   const [amount, setAmount] = useState('');
   const [pricePerUnit, setPricePerUnit] = useState('');
-  const [expiryHours, setExpiryHours] = useState('24');
+  const [expiryHours, setExpiryHours] = useState('168');
 
   // Buy token is always csUSD on this testnet — locked, not user-editable
   const buyTokenAddress = CONTRACT_ADDRESSES.WRAPPED_CONFIDENTIAL_TOKEN as `0x${string}`;

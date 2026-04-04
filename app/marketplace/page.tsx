@@ -20,14 +20,6 @@ function OfferCard({ offerId }: { offerId: number }) {
     query: { refetchInterval: 4000, staleTime: 0 },
   });
 
-  const { data: sellerRep } = useReadContract({
-    address: CONTRACT_ADDRESSES.SHADOW_SWAP_OTC,
-    abi: SHADOW_SWAP_OTC_ABI,
-    functionName: 'tradeCount',
-    args: data ? [data[0]] : undefined,
-    query: { enabled: !!data },
-  });
-
   if (isLoading) {
     return (
       <div className="glass rounded-2xl p-6 animate-pulse">
@@ -98,12 +90,6 @@ function OfferCard({ offerId }: { offerId: number }) {
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Seller</div>
           <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
             {shortenAddress(seller)}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Reputation</div>
-          <div className="text-xs font-semibold" style={{ color: 'var(--cyan-accent)' }}>
-            {sellerRep !== undefined ? `${sellerRep.toString()} trades` : '—'}
           </div>
         </div>
       </div>

@@ -35,6 +35,13 @@ export const MOCK_ERC20_ABI = [
 
 export const WRAPPED_CONFIDENTIAL_TOKEN_ABI = [
   {
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'confidentialBalanceOf',
+    outputs: [{ name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }],
     name: 'wrap',
     outputs: [{ name: '', type: 'uint256' }],
